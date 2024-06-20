@@ -40,13 +40,17 @@ class Cube:
         self.__faces__[side] = np.rot90(self.__faces__[side], k=(-1 * direction + 2))
 
         # Moves the edges of the faces connected to the rotating face, either clockwise or anticlockwise
+        # Gets tiles to be moved to current face
         first_placeholder = copy.deepcopy(self.get_edge(cycle[int(1.5 * direction + 1.5)][0], cycle[int(1.5 * direction + 1.5)][1][0]))
+        # Reverses tiles depending on orientation
         if cycle[0][1][1] != cycle [3][1][1]:
             first_placeholder = first_placeholder[::-1]
         
         # Reversible for loop
-        for i in range(int(1.5 * direction + 1.5), int(-1.5 * direction + 1.5), -1 * direction):            
+        for i in range(int(1.5 * direction + 1.5), int(-1.5 * direction + 1.5), -1 * direction):   
+            # Gets tiles to be moved to current face         
             placeholder = self.get_edge(cycle[i - direction][0], cycle[i - direction][1][0])
+            # Reverses tiles depending on orientation
             if cycle[i][1][1] != cycle [i - direction][1][1]:
                 placeholder = placeholder[::-1]
 
