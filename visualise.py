@@ -196,7 +196,7 @@ def form_cube(cube):
 
 def display_cube(cube):
     pygame.init()
-    display = (800,600)
+    display = (1820,980)
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
 
     gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)
@@ -213,6 +213,6 @@ def display_cube(cube):
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         form_cube(cube)
         pygame.display.flip()
-        pygame.time.wait(10)
+        pygame.time.wait(40)
 
 # https://pythonprogramming.net/opengl-rotating-cube-example-pyopengl-tutorial/
