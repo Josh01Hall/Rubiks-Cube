@@ -5,13 +5,13 @@ class Cube:
     def __init__(self):
 
         # Defines the colours and side labels
-        self.__colours__ = [[255,255,255], [255,255,0], [255,128,0], [255,0,0], [0,255,0], [0,0,255]]
-        #              White           Yellow       Orange       Red        Green      Blue
+        self.__colours__ = [[1,1,1], [1,1,0], [1,0.5,0], [1,0,0], [0,1,0], [0,0,1]]
+        #                  White     Yellow   Orange     Red      Green    Blue
         self.__side_labels__ = ["U", "D", "L", "R", "F", "B"]
 
         # Defines the cube surface
 
-        self.__faces__ = [np.full((3, 3), 0),
+        self.faces = [np.full((3, 3), 0),
                       np.full((3, 3), 1),
                       np.full((3, 3), 2),
                       np.full((3, 3), 3),
@@ -26,7 +26,7 @@ class Cube:
             [(5, "Lr"), (1, "Lr"), (4, "Rf"), (0, "Rf")],
             [(0, "Df"), (3, "Lf"), (1, "Dr"), (2, "Rr")],
             [(2, "Lr"), (1, "Ur"), (3, "Rf"), (0, "Uf")]
-            ]
+        ]
 
 
     # Rotates the chosen side in the desired direction
@@ -37,7 +37,7 @@ class Cube:
         cycle = self.__links__[side]
 
         # rotates the turning face in the chosen direction
-        self.__faces__[side] = np.rot90(self.__faces__[side], k=(-1 * direction + 2))
+        self.faces[side] = np.rot90(self.faces[side], k=(-1 * direction + 2))
 
         # Moves the edges of the faces connected to the rotating face, either clockwise or anticlockwise
         # Gets tiles to be moved to current face
@@ -64,9 +64,9 @@ class Cube:
         edge_index = self.__side_labels__.index(edge)
         # Up and Down edge can pull the entire list, but Left and Right need to pull individual value from each list
         if edge in "UD":
-            return self.__faces__[face][int((edge_index % 2) * -1)]
+            return self.faces[face][int((edge_index % 2) * -1)]
         else:
-            return [i[int((edge_index % 2) * -1)] for i in self.__faces__[face]]
+            return [i[int((edge_index % 2) * -1)] for i in self.faces[face]]
 
     
     # Moves the edge values onto their new side
@@ -74,12 +74,16 @@ class Cube:
         edge_index = self.__side_labels__.index(edge)
         # Up and Down edge can input the entire list, but Left and Right need to input individual value to each list
         if edge in "UD":
-            self.__faces__[face][int((edge_index % 2) * -1)] = values
+            self.faces[face][int((edge_index % 2) * -1)] = values
         else:
             for i in range(3):
-                self.__faces__[face][i][int((edge_index % 2) * -1)] = values[i]
+                self.faces[face][i][int((edge_index % 2) * -1)] = values[i]
     
 
     # Prints cube for testing
     def print_cube(self):
-        print(self.__faces__)
+        print(self.faces)
+
+    # Gives RGB colour of an indivual tile
+    def get_colour(self, face, x, y):
+        return self.__colours__[self.faces[face][x][y]]
