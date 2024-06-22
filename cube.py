@@ -1,7 +1,9 @@
-import numpy as np
-import copy
+import numpy as np, copy
 
 class Cube:
+
+
+    # Defines cube, colours, and moves
     def __init__(self):
 
         # Defines the colours and side labels
@@ -31,14 +33,13 @@ class Cube:
 
 
     # Rotates the chosen side in the desired direction
-    #Direction: 1 Clockwise, -1 Anticlockwise
     def rotate_face(self, side, direction):
 
         # Finds the correct series of movements
         cycle = self.__links__[side]
 
         # rotates the turning face in the chosen direction
-        self.faces[side] = np.rot90(self.faces[side], k=(-1 * direction + 2))
+        self.faces[side] = np.rot90(self.faces[side], k=(direction + 2))
 
         # Moves the edges of the faces connected to the rotating face, either clockwise or anticlockwise
         # Gets tiles to be moved to current face
@@ -80,10 +81,6 @@ class Cube:
             for i in range(3):
                 self.faces[face][i][int((edge_index % 2) * -1)] = values[i]
     
-
-    # Prints cube for testing
-    def print_cube(self):
-        print(self.faces)
 
     # Gives RGB colour of an indivual tile
     def get_colour(self, face, x, y):
