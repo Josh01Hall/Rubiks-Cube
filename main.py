@@ -1,6 +1,5 @@
-import cube
 import visualise
 
-myCube = cube.Cube()
+visualiser = visualise.Visualiser()
 
-visualise.display_cube(myCube)
+visualiser.display_cube()
