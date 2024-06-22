@@ -2,7 +2,13 @@ import pygame
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
+import keyboard as kb
+import numpy as np
 
+# Rotations for possible button presses
+rotations = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, 0]]
+
+# Corners points of all tiles on surface 
 verticies = [
 
     # Up                   ###################################################################
@@ -83,6 +89,7 @@ verticies = [
     [ 1.5, -1.5,  1.5]
     ]
 
+# All dividing lines on surface
 edges = [
     # X axis               ###################################################################
     #U
@@ -139,6 +146,7 @@ edges = [
     [43, 55]
     ]
 
+# Corners of all tiles
 surfaces = [
     # Up                   ###################################################################
     [[[0, 1, 5, 4 ], [1, 2, 6, 5 ], [2, 3, 7, 6 ]],
@@ -171,10 +179,14 @@ surfaces = [
      [[31,30,42,43], [30,29,41,42], [29,28,40,41]]]
 ]
 
+# Draw the cube
 def form_cube(cube):
+
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
     glEnable(GL_DEPTH_TEST)
 
+    # Draw the colours of the tiles
     glBegin(GL_QUADS)
     for i in range(6):
         for j in range(3):
@@ -185,7 +197,8 @@ def form_cube(cube):
                     glVertex3fv(verticies[vertex])
     glEnd()
 
-    glLineWidth(5)
+    # Draw edges of tiles and the cube
+    glLineWidth(10)
     glBegin(GL_LINES)
     for edge in edges:
         for vertex in edge:
@@ -193,26 +206,45 @@ def form_cube(cube):
             glVertex3fv(verticies[vertex])
     glEnd()
 
-
+# Display the cube
 def display_cube(cube):
     pygame.init()
+    # Dimensions of display window
     display = (1820,980)
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
-
-    gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)
-
+    gluPerspective(90, (display[0]/display[1]), 0.1, 50.0)
+    
+    # Sets position of cube on screen, set to centre of x and y axis
     glTranslatef(0.0,0.0, -5)
 
+
+    # Each frame of visualiser
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
 
-        glRotatef(1, 1, 1, 1)
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+        # Checks if any arrow keys have been pressed
+        keys = [-1]
+        if kb.is_pressed("up arrow"):
+            keys.append(0)
+        if kb.is_pressed("down arrow"):
+            keys.append(1)
+        if kb.is_pressed("left arrow"):
+            keys.append(2)
+        if kb.is_pressed("right arrow"):
+            keys.append(3)
+
+        # If multiple keys are pressed at once, combines rotation directions
+        rotation = np.sum([rotations[x] for x in keys], axis=0)
+        current_angle = 1
+        # Rotate cube based on user inputs
+        glRotatef(current_angle, rotation[0], rotation[1], rotation[2])
+        # Draw cube
         form_cube(cube)
         pygame.display.flip()
-        pygame.time.wait(40)
+        # Frame rate
+        pygame.time.wait(10)
 
 # https://pythonprogramming.net/opengl-rotating-cube-example-pyopengl-tutorial/

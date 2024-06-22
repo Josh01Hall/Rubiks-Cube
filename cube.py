@@ -6,8 +6,9 @@ class Cube:
 
         # Defines the colours and side labels
         self.__colours__ = [[1,1,1], [1,1,0], [1,0.5,0], [1,0,0], [0,1,0], [0,0,1]]
-        #                  White     Yellow   Orange     Red      Green    Blue
-        self.__side_labels__ = ["U", "D", "L", "R", "F", "B"]
+        #                   White    Yellow   Orange     Red      Green    Blue
+        self.__side_labels__ = ["U", "D",   "L",   "R",   " F",    "B"]
+        #                        Up   Done   Left   Right   Front   Back
 
         # Defines the cube surface
 
@@ -30,7 +31,7 @@ class Cube:
 
 
     # Rotates the chosen side in the desired direction
-    "Direction: 1 Clockwise, -1 Anticlockwise"
+    #Direction: 1 Clockwise, -1 Anticlockwise
     def rotate_face(self, side, direction):
 
         # Finds the correct series of movements
