@@ -1,41 +1,7 @@
-TOP
+TO DO LIST:
 
-0  1  2  3
-4  5  6  7
-8  9  10 11
-12 13 14 15
-
-DOWN
-
-43 42 41 40
-47 46 45 44
-51 50 49 48
-55 54 53 52
-
-LEFT
-
-0  4  8  12
-16 20 22 24
-28 32 34 36
-40 44 48 52
-
-RIGHT
-
-15 11 7  3
-27 23 21 19
-39 35 33 31
-55 51 47 43
-
-FRONT
-
-12 13 14 15
-24 25 26 27
-36 37 38 39
-52 53 54 55
-
-BACK
-
-3  2  1  0
-19 18 17 16
-31 30 29 28
-43 42 41 40
+- Fix cube rotation, need some kind of angle offset based on previous rotation
+- Sort black lines becoming invisible in certain perspectives
+- Sort appearance of move window
+- Create solver
+- Long term, animate cube turns, potentially rotate individual parts of the cube, and colour hidden sides of individual tiles
