@@ -99,7 +99,7 @@ class Move_GUI():
         while count > 0:
             while self.__parent__.__move_made__ != False:
                 continue
-            self.__parent__.__move_made__ = [int(random.random() * 6), random.choice([-1, 1])]
+            self.__parent__.__move_made__ = [random.choice([0, 1, 2, 3, 4, 5]), random.choice([-1, 1])]
             count -= 1
             time.sleep(0.5)
 
