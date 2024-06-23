@@ -3,7 +3,6 @@ from pygame import locals
 from OpenGL import GL, GLU
 import cube, move_window
 
-
 class Visualiser():
 
 
@@ -144,9 +143,9 @@ class Visualiser():
         # Draw edges of tiles and the cube
         GL.glLineWidth(10)
         GL.glBegin(GL.GL_LINES)
-        GL.glColor3fv([0,0,0])
         for edge in self.__edges__:
-            for vertex in edge:                
+            for vertex in edge:
+                GL.glColor3fv([0,0,0])
                 GL.glVertex3fv(self.__verticies__[vertex])
         GL.glEnd()
 
@@ -155,11 +154,12 @@ class Visualiser():
     def display_cube(self):
         pygame.init()
         # Dimensions of display window
-        pygame.display.set_mode((1720, 880), locals.DOUBLEBUF|locals.OPENGL)
-        GLU.gluPerspective(90, (1720/880), 0.1, 50.0)
-
+        display = (1820,980)
+        pygame.display.set_mode(display, locals.DOUBLEBUF|locals.OPENGL)
+        GLU.gluPerspective(90, (display[0]/display[1]), 0.1, 50.0)
+    
         # Sets position of cube on screen, set to centre of x and y axis
-        GL.glTranslatef(0, 0, -5)
+        GL.glTranslatef(0.0,0.0, -5)
 
         # Each frame of visualiser
         while True:
@@ -189,14 +189,12 @@ class Visualiser():
 
             # If multiple keys are pressed at once, combines rotation directions
             rotation = np.sum([self.__rotations__[x] for x in keys], axis=0)
-
+            current_angle = 1
             # Rotate cube based on user inputs
-            GL.glRotatef(1, rotation[0], rotation[1], rotation[2])
-
+            GL.glRotatef(current_angle, rotation[0], rotation[1], rotation[2])
             # Draw cube
             self.__form_cube__()
             pygame.display.flip()
-
             # Frame rate
             pygame.time.wait(10)
 
