@@ -1,4 +1,4 @@
-import vpython as vp, keyboard as kb, time
+import vpython as vp, keyboard as kb, time, copy, itertools as iter
 
 #box = vp.box(pos=vp.vector(0,0,0), size=vp.vector(10, 10, 10), color=vp.color.red)
 
@@ -169,6 +169,44 @@ cube_DRF = vp.compound([vp.pyramid(color=vp.color.white, pos=vp.vec(0,   0.5,0),
                         vp.pyramid(color=vp.color.red,    pos=vp.vec(0,   0,  0.5),  axis=vp.vec(0, 0,-1),  size=vp.vec(0.5,1,1)),
                         vp.pyramid(color=vp.color.orange, pos=vp.vec(0,   0, -0.5),  axis=vp.vec(0, 0, 1),  size=vp.vec(0.5,1,1))])
 '''
+
+# Create 3 layers of faces for each 6 side, 1 colour then 2 black, figure out how to properly assign these to the right piece
+
+# Colours for the 3 layers of each set of pyramids
+colours = [x + [vp.color.black, vp.color.black] for x in [[vp.color.white], [vp.color.yellow], [vp.color.blue], [vp.color.green], [vp.color.red], [vp.color.orange]]]
+# Axis of each pyramid making up each piece
+axis = [[0, -1, 0], [0, 1, 0], [-1, 0, 0], [1, 0, 0], [0, 0, -1], [0, 0, 1]]
+# Position of each pyramid, relative to centre of piece
+position_vectors = [[0, 0.5, 0], [0, -0.5, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0, 0.5], [0, 0, -0.5]]
+
+face_vector = [[[], [], []],
+               [[], [], []],
+               [[], [], []]]
+
+
+layer_vector = []
+
+pieces = [3 * [3 * [3 * []]]]
+faces = [6 * [3 * [3 * []]]]
+
+
+
+# Layers of the cube, top to bottom
+for l in range(3):
+    # Faces of the cube
+    face = []
+    for fy, fx, in iter.product(range(3), range(3)):
+        # Sides of each piece of the cube
+        piece = []
+        for s in range(6):
+            piece.append(vp.pyramid(color=colours[s][l], pos=vp.vec(position_vectors[l]) + vp.vec(face_vector[fy][fx]) + vp.vec(layer_vector[l]), axis=vp.vec(axis[s], size=vp.vec(0.5, 1, 1))))
+
+        # Binds each face of each piece together
+        pieces[0] = vp.compound(piece)
+
+    # Binds each piece of each face together
+    faces[0] = ""
+
 
 cube = vp.compound([cube_ULB, cube_UMB, cube_URB, cube_ULM, cube_UMM, cube_URM, cube_ULF, cube_UMF, cube_URF])
 
