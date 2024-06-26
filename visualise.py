@@ -1,207 +1,133 @@
-import pygame, keyboard as kb, numpy as np, threading, itertools
-from pygame import locals
-from OpenGL import GL, GLU
-import cube, move_window
-
-class Visualiser():
+import vpython as vp, keyboard as kb, time, itertools as iter, math, copy
 
 
-    # Create all the objects needed
+#Graphical renderer of Rubiks cube
+class Cube_Renderer():
+
+
+    # Creates the cube and all the pieces, and all rotational objects and vectors    
     def __init__(self):
 
-        # Creates cube object
-        self.myCube = cube.Cube()
-        
-        # Creates move_window object, then starts it in new thread so visualiser and move selector can run at the same time
-        self.__mover_window__ = ""
-        mover_thread = threading.Thread(target=self.__move_window__)
-        mover_thread.start()
+        # Sets size of background in display window
+        background = vp.canvas(background=vp.vec(1,1,1), width=1000, height=800)
 
-        # Indicator for if a move has been made by the user 
-        self.__move_made__ = False
+        # Colours for the 3 layers of each set of pyramids, 6 surface colours and the interior colour of each piece
+        colour_options = [vp.color.blue, vp.color.green, vp.color.white, vp.color.yellow, vp.color.red, vp.color.orange, vp.color.black]
+        #                 Right          Left            Top             Bottom           Front         Back             Interior
+        colours = []
 
-        # Rotations for possible button presses
-        self.__rotations__ = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, 1], [0, 0, -1], [0, 0, 0]]
-
-        # All points on cube surface 
-        self.__verticies__ = []     
-        skip = [-0.5, 0.5]
-        vertex_values = [-1.5, -0.5, 0.5, 1.5]
-        for y, z, x in itertools.product(vertex_values[::-1], vertex_values, vertex_values):
-            if x not in skip or y not in skip or z not in skip:
-                self.__verticies__.append([x, y, z])
-
-        # All dividing lines on surface
-        self.__edges__ = [
-            # X axis               ###################################################################
-            #U
-            [0,   3],
-            [4,   7],
-            [8,  11],
-            [12, 15],
-            #MU
-            [16, 19],
-            [24, 27],
-            #MD
-            [28, 31],
-            [36, 39],
-            #D
-            [40, 43],
-            [44, 47],
-            [48, 51],
-            [52, 55],
-
-            # Y axis               ###################################################################
-            #B
-            [0,  40],
-            [1,  41],
-            [2,  42],
-            [3,  43],
-            #MB
-            [4,  44],
-            [7,  47],
-            #MF
-            [8,  48],
-            [11, 51],
-            #F
-            [12, 52],
-            [13, 53],
-            [14, 54],
-            [15, 55],
-
-            # Z axis               ###################################################################
-            #U
-            [0,  12],
-            [1,  13],
-            [2,  14],
-            [3,  15],
-            #MU
-            [16, 24],
-            [19, 27],
-            #MD
-            [28, 36],
-            [31, 39],
-            #D
-            [40, 52],
-            [41, 53],
-            [42, 54],
-            [43, 55]
-            ]
-
-        # Corners of all tiles
-        self.__surfaces__ = [
-            # Up                   ###################################################################
-            [[[0, 1, 5, 4 ], [1, 2, 6, 5 ], [2, 3, 7, 6 ]],
-             [[4, 5, 9, 8 ], [5, 6, 10,9 ], [6, 7, 11,10]],
-             [[8, 9, 13,12], [9, 10,14,13], [10,11,15,14]]],
-
-            # Down                 ###################################################################
-            [[[43,42,46,47], [42,41,45,46], [41,40,44,45]],
-             [[47,46,50,51], [46,45,49,50], [45,44,48,49]],
-             [[51,50,54,55], [50,49,53,54], [49,48,52,53]]],
-
-            # Left                 ###################################################################
-            [[[0, 4, 20,16], [4, 8, 22,20], [8, 12,24,22]],
-             [[16,20,32,28], [20,22,34,32], [22,24,36,34]],
-             [[28,32,44,40], [32,34,48,44], [34,36,52,48]]],
-
-            # Right                ###################################################################
-            [[[15,11,23,27], [11, 7,21,23], [7, 3, 19,21]],
-             [[27,23,35,39], [23,21,33,35], [21,19,31,33]],
-             [[39,35,51,55], [35,33,47,51], [33,31,43,47]]],
-
-            # Front                ###################################################################
-            [[[12,13,25,24], [13,14,26,25], [14,15,27,26]],
-             [[24,25,37,36], [25,26,38,37], [26,27,39,38]],
-             [[36,37,53,52], [37,38,54,53], [38,39,55,54]]],
-
-            # Back                 ###################################################################
-            [[[3, 2, 18,19], [2, 1, 17,18], [1, 0, 16,17]],
-             [[19,18,30,31], [18,17,29,30], [17,16,28,29]],
-             [[31,30,42,43], [30,29,41,42], [29,28,40,41]]]
-        ]
-
-
-    # Draw the cube
-    def __form_cube__(self):
-
-        GL. glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
-
-        GL. glEnable(GL.GL_DEPTH_TEST)
-
-        # Draw the colours of the tiles
-        GL. glBegin(GL.GL_QUADS)
+        # Groups the colours for use when creating the pyramids
         for i in range(6):
-            for j in range(3):
-                for k in range(3):
-                    for vertex in self.__surfaces__[i][j][k]:
+            colours.append(([colour_options[i]] + [colour_options[6]] * 2)[::int((i % 2 - 0.5) * 2)])
 
-                        GL.glColor3fv(self.myCube.get_colour(i, j, k))
-                        GL.glVertex3fv(self.__verticies__[vertex])
-        GL.glEnd()
+        # Axis of each pyramid making up each piece
+        self.__render_axes__ = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]]
 
-        # Draw edges of tiles and the cube
-        GL.glLineWidth(10)
-        GL.glBegin(GL.GL_LINES)
-        for edge in self.__edges__:
-            for vertex in edge:
-                GL.glColor3fv([0,0,0])
-                GL.glVertex3fv(self.__verticies__[vertex])
-        GL.glEnd()
+        # Axes for turns, initially the inverse of render_axes, but will need to be changed to account for cube rotation
+        self.__turn_axes__ = copy.deepcopy([[component * -1 for component in axis] for axis in self.__render_axes__])
+
+        # Position of each pyramid, relative to the centre of a piece
+        position_vectors = [[component * (-0.5) for component in axis] for axis in self.__render_axes__]
+
+        # Current turn being made and number of rotations left, if no turn is being made both are 0
+        self.selected_turn = [0, 0]        
+
+        # Position of each piece, relative to the centre of the cube, centre of the cube is at the origin
+        piece_vectors = []
+        for y in range(-1, 2):
+            y_vectors = []
+            for z in range(-1, 2):
+                x_vectors = []
+                for x in range(-1, 2):
+                    x_vectors.append([x, z, y])
+                y_vectors.append(x_vectors)
+            piece_vectors.append(y_vectors)
+
+        # Each piece of the cube
+        self.__pieces__ = []
+
+        # Each piece of the cube, from bottom back left, to top front right
+        for y in range(3):
+            z_set = []
+            for z in range(3):
+                x_set = []
+                for x in range(3):
+                    piece = []
+                    # Sides of each piece
+                    for s in range(6):
+
+                        # Creates the pyramids that make up the piece
+                        piece.append(vp.pyramid(color=colours[s][[y, x, z][math.floor(s/2)]], pos=vp.vec(*position_vectors[s]) + vp.vec(*piece_vectors[z][x][y]), axis=vp.vec(*self.__render_axes__[s]), size=vp.vec(0.5, 1, 1)))
+                    # Binds each side of each piece together, so they rotate together during turns
+                    x_set.append(vp.compound(piece))
+                z_set.append(x_set)
+            self.__pieces__.append(z_set)
+
+        # Coordinates of the 9 pieces in each face
+        self.__faces__ = [[[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [0, 1, 1], [0, 1, 2], [0, 2, 0], [0, 2, 1], [0, 2, 2]],          # Green
+                          [[2, 0, 0], [2, 0, 1], [2, 0, 2], [2, 1, 0], [2, 1, 1], [2, 1, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]],          # Blue
+                          [[0, 0, 0], [0, 1, 0], [0, 2, 0], [1, 0, 0], [1, 1, 0], [1, 2, 0], [2, 0, 0], [2, 1, 0], [2, 2, 0]],          # Yellow
+                          [[0, 0, 2], [0, 1, 2], [0, 2, 2], [1, 0, 2], [1, 1, 2], [1, 2, 2], [2, 0, 2], [2, 1, 2], [2, 2, 2]],          # White
+                          [[0, 0, 0], [0, 0, 1], [0, 0, 2], [1, 0, 0], [1, 0, 1], [1, 0, 2], [2, 0, 0], [2, 0, 1], [2, 0, 2]],          # Orange
+                          [[0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]]          # Red
 
 
-    # Display the cube
-    def display_cube(self):
-        pygame.init()
-        # Dimensions of display window
-        display = (1820,980)
-        pygame.display.set_mode(display, locals.DOUBLEBUF|locals.OPENGL)
-        GLU.gluPerspective(90, (display[0]/display[1]), 0.1, 50.0)
-    
-        # Sets position of cube on screen, set to centre of x and y axis
-        GL.glTranslatef(0.0,0.0, -5)
+        # After a turn is made, the references to the pieces need to be moved to a different set of faces
+        self.__reference_changes__ = [[[[0,0,0], [2,0,0]], [[1,0,0], [2,1,0]], [[2,0,0], [2,2,0]], [[2,1,0], [1,2,0]], [[2,2,0], [0,2,0]], [[1,2,0], [0,1,0]], [[0,2,0], [0,0,0]], [[0,1,0], [1,0,0]]],   # Green
+                                      [[[0,2,2], [2,2,2]], [[1,2,2], [2,1,2]], [[2,2,2], [2,0,2]], [[2,1,2], [1,0,2]], [[2,0,2], [0,0,2]], [[1,0,2], [0,1,2]], [[0,0,2], [0,2,2]], [[0,1,2], [1,2,2]]],   # Blue
+                                      [[[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []]],   # Yellow
+                                      [[[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []]],   # White
+                                      [[[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []]],   # Orange
+                                      [[[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []]]]   # Red
 
-        # Each frame of visualiser
+
+    # Renders the cube, checking for user rotation and cube moves every frame
+    def render(self):
+
+        # Individual frame, allowing rotation and turns
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
-
-            if self.__move_made__ != False:
-                self.myCube.rotate_face(self.__move_made__[0], self.__move_made__[1])
-                self.__move_made__ = False
-
-            # Checks if any arrow keys have been pressed
+            # Check which keys have been pressed, and complete appropriate rotation ()
             keys = [-1]
-            if kb.is_pressed("w"):
-                keys.append(0)
-            if kb.is_pressed("s"):
-                keys.append(1)
-            if kb.is_pressed("a"):
-                keys.append(2)
-            if kb.is_pressed("d"):
-                keys.append(3)
-            if kb.is_pressed("q"):
-                keys.append(4)
-            if kb.is_pressed("e"):
-                keys.append(5)
+            if kb.is_pressed("w"): keys.append(1)
+            if kb.is_pressed("s"): keys.append(0)
+            if kb.is_pressed("a"): keys.append(3)
+            if kb.is_pressed("d"): keys.append(2)
+            if kb.is_pressed("q"): keys.append(4)
+            if kb.is_pressed("e"): keys.append(5)
 
-            # If multiple keys are pressed at once, combines rotation directions
-            rotation = np.sum([self.__rotations__[x] for x in keys], axis=0)
-            current_angle = 1
-            # Rotate cube based on user inputs
-            GL.glRotatef(current_angle, rotation[0], rotation[1], rotation[2])
-            # Draw cube
-            self.__form_cube__()
-            pygame.display.flip()
-            # Frame rate
-            pygame.time.wait(10)
+            # If a turn is being made, turn the cube
+            if self.selected_turn != [0, 0]:
+                self.__turn__()
+
+            # If values have been added to keys, rotate the cube
+            if keys != [-1]: self.__rotate__(keys[1:])
+
+            # Time between frames
+            time.sleep(0.005)
 
 
-    # Initiates wove_GUI object within its own thread
-    def __move_window__(self):
-       self.__mover_window__ = move_window.Move_GUI(self)
+    # Turn the face of the cube chosen by the user
+    def __turn__(self):
+
+        # Pull coordinates needed for the turn selected, and rotate each of the corresponding cubes in the selected direction
+        for [y, z, x] in self.__faces__[self.selected_turn[0][0]]:
+            self.__pieces__[y][z][x].rotate(angle=vp.radians(1 * self.selected_turn[0][1]), axis=vp.vec(*self.__turn_axes__[self.selected_turn[0][0]]), origin=vp.vec(0,0,0))
+
+        self.selected_turn[1] -= 1
+        if self.selected_turn[1] == 0:
+            self.selected_turn = [0,0]
 
 
-# https://pythonprogramming.net/opengl-rotating-cube-example-pyopengl-tutorial/
+    # Rotate the cube based on user input
+    def __rotate__(self, keys):
+
+        # Add together rotations, giving a single rotation vector
+        rotation = [0,0,0]
+        for key in keys:
+            rotation = [sum(x) for x in zip(rotation, self.__render_axes__[key])]
+
+        # Rotate each piece of the cube about the origin
+        for y, z, x in iter.product(range(3), range(3), range(3)):
+            self.__pieces__[y][z][x].rotate(angle=vp.radians(-0.35), axis=vp.vec(*rotation), origin=vp.vec(0,0,0))
+
+        ######################## Change the rotational axes based on the turn made, will need to use trig 
