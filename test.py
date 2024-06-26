@@ -21,10 +21,12 @@ class Cube_Renderer():
             colours.append(([colour_options[i]] + [colour_options[6]] * 2)[::int((i % 2 - 0.5) * 2)])
 
         # Axis of each pyramid making up each piece
-        axis = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]]
+        render_axes = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]]
+        # Axes for cube rotations, same as axes * -1, as the pyramids are printed upside down in relation to their axes, with vector of all 0s for no rotation
+        self.__rotational_axes__ = [[component * -1 for component in axis] for axis in render_axes] + [[0,0,0]]
 
         # Position of each pyramid, relative to the centre of a piece
-        position_vectors = [[i * (-0.5) for i in row] for row in axis]
+        position_vectors = [[i * (-0.5) for i in row] for row in render_axes]
 
         # Position of each piece, relative to the centre of the cube, centre of the cube is at the origin
         piece_vectors = []
@@ -50,7 +52,7 @@ class Cube_Renderer():
             for s in range(6):
 
                 # Creates the pyramids that make up the piece
-                piece.append(vp.pyramid(color=colours[s][[y, x, z][math.floor(s/2)]], pos=vp.vec(*position_vectors[s]) + vp.vec(*piece_vectors[z][x][y]), axis=vp.vec(*axis[s]), size=vp.vec(0.5, 1, 1)))
+                piece.append(vp.pyramid(color=colours[s][[y, x, z][math.floor(s/2)]], pos=vp.vec(*position_vectors[s]) + vp.vec(*piece_vectors[z][x][y]), axis=vp.vec(*render_axes[s]), size=vp.vec(0.5, 1, 1)))
 
             # Binds each side of each piece together, so they rotate together during turns
             pieces[y][z][x] = vp.compound(piece)
@@ -60,37 +62,60 @@ class Cube_Renderer():
         # Binds together the 9 cubes in each of the 6 faces, so they can be turned independent of the cube
         #     THIS IS CAUSING THE OTHER OBJECTS TO APPEAR, NEED TO FIGURE OUT WHY
         if True:
-            self.__faces__ = [vp.compound([copy.copy(pieces[2][0][0]), copy.copy(pieces[2][0][1]), copy.copy(pieces[2][0][2]),
-                                           copy.copy(pieces[2][1][0]), copy.copy(pieces[2][1][1]), copy.copy(pieces[2][1][2]), 
-                                           copy.copy(pieces[2][2][0]), copy.copy(pieces[2][2][1]), copy.copy(pieces[2][2][2])]),    # White
+            self.__faces__ = [vp.compound([pieces[2][0][0], pieces[2][0][1], pieces[2][0][2],
+                                           pieces[2][1][0], pieces[2][1][1], pieces[2][1][2], 
+                                           pieces[2][2][0], pieces[2][2][1], pieces[2][2][2]]),    # White
 
-                              vp.compound([copy.copy(pieces[0][0][0]), copy.copy(pieces[0][0][1]), copy.copy(pieces[0][0][2]),
-                                           copy.copy(pieces[0][1][0]), copy.copy(pieces[0][1][1]), copy.copy(pieces[0][1][2]),
-                                           copy.copy(pieces[0][2][0]), copy.copy(pieces[0][2][1]), copy.copy(pieces[0][2][2])]),    # Yellow
+                              vp.compound([pieces[0][0][0], pieces[0][0][1], pieces[0][0][2],
+                                           pieces[0][1][0], pieces[0][1][1], pieces[0][1][2],
+                                           pieces[0][2][0], pieces[0][2][1], pieces[0][2][2]]),    # Yellow
 
-                              vp.compound([copy.copy(pieces[0][0][0]), copy.copy(pieces[0][1][0]), copy.copy(pieces[0][2][0]),
-                                           copy.copy(pieces[1][0][0]), copy.copy(pieces[1][1][0]), copy.copy(pieces[1][2][0]),
-                                           copy.copy(pieces[2][0][0]), copy.copy(pieces[2][1][0]), copy.copy(pieces[2][2][0])]),    # Green
+                              vp.compound([pieces[0][0][0], pieces[0][1][0], pieces[0][2][0],
+                                           pieces[1][0][0], pieces[1][1][0], pieces[1][2][0],
+                                           pieces[2][0][0], pieces[2][1][0], pieces[2][2][0]]),    # Green
 
-                              vp.compound([copy.copy(pieces[0][0][2]), copy.copy(pieces[0][1][2]), copy.copy(pieces[0][2][2]),
-                                           copy.copy(pieces[1][0][2]), copy.copy(pieces[1][1][2]), copy.copy(pieces[1][2][2]),
-                                           copy.copy(pieces[2][0][2]), copy.copy(pieces[2][1][2]), copy.copy(pieces[2][2][2])]),    # Blue
+                              vp.compound([pieces[0][0][2], pieces[0][1][2], pieces[0][2][2],
+                                           pieces[1][0][2], pieces[1][1][2], pieces[1][2][2],
+                                           pieces[2][0][2], pieces[2][1][2], pieces[2][2][2]]),    # Blue
 
-                              vp.compound([copy.copy(pieces[2][2][0]), copy.copy(pieces[2][2][1]), copy.copy(pieces[2][2][2]),
-                                           copy.copy(pieces[1][2][0]), copy.copy(pieces[1][2][1]), copy.copy(pieces[1][2][2]),
-                                           copy.copy(pieces[0][2][0]), copy.copy(pieces[0][2][1]), copy.copy(pieces[0][2][2])]),    # Red
+                              vp.compound([pieces[0][2][0], pieces[0][2][1], pieces[0][2][2],
+                                           pieces[1][2][0], pieces[1][2][1], pieces[1][2][2],
+                                           pieces[2][2][0], pieces[2][2][1], pieces[2][2][2]]),    # Red
 
-                              vp.compound([copy.copy(pieces[2][0][0]), copy.copy(pieces[2][0][1]), copy.copy(pieces[2][0][2]),
-                                           copy.copy(pieces[1][0][0]), copy.copy(pieces[1][0][1]), copy.copy(pieces[1][0][2]),
-                                           copy.copy(pieces[0][0][0]), copy.copy(pieces[0][0][1]), copy.copy(pieces[0][0][2])])]    # Orange
+                              vp.compound([pieces[0][0][0], pieces[0][0][1], pieces[0][0][2],
+                                           pieces[1][0][0], pieces[1][0][1], pieces[1][0][2],
+                                           pieces[2][0][0], pieces[2][0][1], pieces[2][0][2]])]    # Orange
 
-        #self.__cube__ = [self.__faces__ +  [pieces[1][1][1]]]
+        else:
+            self.__faces__ = [[pieces[2][0][0], pieces[2][0][1], pieces[2][0][2],
+                               pieces[2][1][0], pieces[2][1][1], pieces[2][1][2], 
+                               pieces[2][2][0], pieces[2][2][1], pieces[2][2][2]],    # White
+
+                              [pieces[0][0][0], pieces[0][0][1], pieces[0][0][2],
+                               pieces[0][1][0], pieces[0][1][1], pieces[0][1][2],
+                               pieces[0][2][0], pieces[0][2][1], pieces[0][2][2]],    # Yellow
+
+                              [pieces[0][0][0], pieces[0][1][0], pieces[0][2][0],
+                               pieces[1][0][0], pieces[1][1][0], pieces[1][2][0],
+                               pieces[2][0][0], pieces[2][1][0], pieces[2][2][0]],    # Green
+
+                              [pieces[0][0][2], pieces[0][1][2], pieces[0][2][2],
+                               pieces[1][0][2], pieces[1][1][2], pieces[1][2][2],
+                               pieces[2][0][2], pieces[2][1][2], pieces[2][2][2]],    # Blue
+
+                              [pieces[0][2][0], pieces[0][2][1], pieces[0][2][2],
+                               pieces[1][2][0], pieces[1][2][1], pieces[1][2][2],
+                               pieces[2][2][0], pieces[2][2][1], pieces[2][2][2]],    # Red
+
+                              [pieces[0][0][0], pieces[0][0][1], pieces[0][0][2],
+                               pieces[1][0][0], pieces[1][0][1], pieces[1][0][2],
+                               pieces[2][0][0], pieces[2][0][1], pieces[2][0][2]]]    # Orange
+
+            #for i in range(6):
+            #    self.__faces__[i] = vp.compound(self.__faces__[i])
 
         # Binds all pieces together, so whole cube can be rotated
         self.__cube__ = vp.compound(self.__cube__)
-
-        # Axes for cube rotations, all are reverse of pyramid 
-        self.__rotational_axes__ = [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1], [0,0,0]]
 
         # Current turn being made and number of rotations left, if no turn is being made both are 0
         self.current_turn = 0
