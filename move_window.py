@@ -6,13 +6,14 @@ class Move_GUI():
 
 
     # Creates all elements in the window
-    def __init__(self, parent_visualiser):
+    def __init__(self, visualiser):
 
         # Reference to parent Visualiser object
-        self.__parent__ = parent_visualiser
+        self.__visualiser_object__ = visualiser
 
         # Colours of the centre tile of each face
-        self.__colours__ = ["White", "Yellow", "Orange", "Red", "Green", "Blue"]
+        self.__colours__ = ["Green", "Blue", "Yellow", "White", "Orange", "Red"]
+
 
         # Position of each object
         positions = [(150, 10, 20, 20), (270, 100, 60, 60), (270, 165, 60, 60), (270, 230, 60, 60), (70, 100, 60, 60), (70, 165, 60, 60), (470, 100, 60, 60)]
@@ -86,9 +87,9 @@ class Move_GUI():
             direction = -1
 
         # Waits if a move has already been sent to the cube
-        while self.__parent__.__move_made__ != False:
+        while self.__visualiser_object__.selected_turn != [0, 0]:
             continue
-        self.__parent__.__move_made__ = [self.__colours__.index(colour), direction]
+        self.__visualiser_object__.selected_turn = [[self.__colours__.index(colour), direction], 90]
 
 
     # Makes a user defined number of random moves on the cube
@@ -97,13 +98,13 @@ class Move_GUI():
         count = int(self.__random_number__.get())
 
         while count > 0:
-            while self.__parent__.__move_made__ != False:
+            while self.__visualiser_object__.__move_made__ != False:
                 continue
-            self.__parent__.__move_made__ = [random.choice([0, 1, 2, 3, 4, 5]), random.choice([-1, 1])]
+            self.__visualiser_object__.__move_made__ = [random.choice([0, 1, 2, 3, 4, 5]), random.choice([-1, 1])]
             count -= 1
             time.sleep(0.5)
 
 
     # Solves the rubiks cube, outputting the time taken and the number of moves
     def __solve__(self):
-        solver.solve(self.__parent__.myCube.faces)
+        solver.solve(self.__visualiser_object__.myCube.faces)
