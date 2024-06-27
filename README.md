@@ -1,10 +1,10 @@
 TO DO LIST:
 
 Short Term:
-- Finish cube turns, need to move references to individual pieces after each turn
-- Finish turns, need to account for rotation of entire cube
+- Finish rotation, modify rotational axes so turns rotate about the relative axes of the cube
+- Remove hard coding in visualise, definitely doable
 - Integrate visualiser with backend cube representation
 
 Long Term:
 - Create solver
-- Long term, proper move window gui improvements
+- Proper move window gui improvements
