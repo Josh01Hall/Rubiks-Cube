@@ -88,7 +88,7 @@ class Move_GUI():
 
         # Waits if a move has already been sent to the cube
         while self.__visualiser_object__.selected_turn != [0, 0]:
-            continue
+            time.sleep(0.05)
         self.__visualiser_object__.selected_turn = [[self.__colours__.index(colour), direction], 90]
 
 
@@ -98,9 +98,9 @@ class Move_GUI():
         count = int(self.__random_number__.get())
 
         while count > 0:
-            while self.__visualiser_object__.__move_made__ != False:
-                continue
-            self.__visualiser_object__.__move_made__ = [random.choice([0, 1, 2, 3, 4, 5]), random.choice([-1, 1])]
+            while self.__visualiser_object__.selected_turn != [0, 0]:
+                time.sleep(0.05)
+            self.__visualiser_object__.selected_turn = [[random.choice([0, 1, 2, 3, 4, 5]), random.choice([-1, 1])], 90]
             count -= 1
             time.sleep(0.5)
 
