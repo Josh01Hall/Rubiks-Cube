@@ -1,4 +1,4 @@
-import vpython as vp, keyboard as kb, time, itertools as iter, math, copy, random
+import vpython as vp, keyboard as kb, time, itertools as iter, math, copy
 
 
 #Graphical renderer of Rubiks cube
@@ -14,13 +14,13 @@ class Cube_Renderer():
         # Colours for the 3 layers of each set of pyramids, 6 surface colours and the interior colour of each piece
         colour_options = [vp.color.blue, vp.color.green, vp.color.white, vp.color.yellow, vp.color.red, vp.color.orange, vp.color.black]
         #                 Right          Left            Top             Bottom           Front         Back             Interior
-        colours = []
 
         # Groups the colours for use when creating the pyramids
+        colours = []
         for i in range(6):
             colours.append(([colour_options[i]] + [colour_options[6]] * 2)[::int((i % 2 - 0.5) * 2)])
 
-        # Axis of each pyramid making up each piece
+        # Axis of each pyramid making up each piece, used when rendering the pyramids
         self.__render_axes__ = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]]
 
         # Axes for turns, initially the inverse of render_axes, but will need to be changed to account for cube rotation
@@ -29,7 +29,7 @@ class Cube_Renderer():
         # Position of each pyramid, relative to the centre of a piece
         position_vectors = [[component * (-0.5) for component in axis] for axis in self.__render_axes__]
 
-        # Current turn being made and number of rotations left, if no turn is being made both are 0
+        # Current turn being made and number of rotations left, if no turn is being made the variable is [0, 0]
         self.selected_turn = [0, 0]        
 
         # Position of each piece, relative to the centre of the cube, centre of the cube is at the origin
@@ -43,10 +43,8 @@ class Cube_Renderer():
                 y_vectors.append(x_vectors)
             piece_vectors.append(y_vectors)
 
-        # Each piece of the cube
-        self.__pieces__ = []
-
         # Each piece of the cube, from bottom back left, to top front right
+        self.__pieces__ = []
         for y in range(3):
             z_set = []
             for z in range(3):
@@ -72,14 +70,15 @@ class Cube_Renderer():
                           [[0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]]          # Red
 
 
+        # When a face is turned, the coordinate references in self.__faces__ need to be updated, this shows the how they change
+        self.__reference_changes__ = []
+        reference_template = [0, 3, 6, 7, 8, 5, 2, 1]
 
-        ######################## I THINK TWEAKING THESE WILL FIX IT
-        self.__reference_changes__ = [[0, 1, 2, 5, 8, 7, 6, 3],
-                                      [0, 3, 6, 7, 8, 5, 2, 1],
-                                      [0, 1, 2, 5, 8, 7, 6, 3],
-                                      [0, 3, 6, 7, 8, 5, 2, 1],
-                                      [0, 1, 2, 5, 8, 7, 6, 3],
-                                      [0, 3, 6, 7, 8, 5, 2, 1]]
+        for i in range(6):
+            self.__reference_changes__.append(reference_template[::int((i % 2 - 0.5) * -2)])
+
+        # For some reason orange and red reverse the flipping pattern, this accounts for it
+        self.__reference_changes__[4], self.__reference_changes__[5] = self.__reference_changes__[5], self.__reference_changes__[4]
 
 
     # Renders the cube, checking for user rotation and cube moves every frame
@@ -114,6 +113,7 @@ class Cube_Renderer():
         for [y, z, x] in self.__faces__[self.selected_turn[0][0]]:
             self.__pieces__[y][z][x].rotate(angle=vp.radians(1 * self.selected_turn[0][1]), axis=vp.vec(*self.__turn_axes__[self.selected_turn[0][0]]), origin=vp.vec(0,0,0))
 
+        # Reduces the number of frames of rotation remaining. When it reaches 0, the rotation is complete and the piece references in each face need to be updates
         self.selected_turn[1] -= 1
         if self.selected_turn[1] == 0:
 
@@ -122,11 +122,13 @@ class Cube_Renderer():
 
             # Pairs of initial and target pieces, so the references for each piece rotate along with the faces
             pairs = []
-            for i in range(-2, 6):
-                pairs.append([self.__faces__[self.selected_turn[0][0]][reference_moves[i]], self.__faces__[self.selected_turn[0][0]][reference_moves[i + 2]]])
+            for i in range(8):
+                pairs.append([self.__faces__[self.selected_turn[0][0]][reference_moves[i % 8]], self.__faces__[self.selected_turn[0][0]][reference_moves[(i + 2) % 8]]])
 
+            # For each input piece reference, every occurence in the cube is swapped to the target reference
             for face, piece in iter.product(range(6), range(9)):
                 for pair in pairs:
+                    # Move onto next piece after an input reference is found
                     if self.__faces__[face][piece] == pair[0]:
                         self.__faces__[face][piece] = pair[1]
                         break
