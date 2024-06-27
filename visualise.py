@@ -1,4 +1,4 @@
-import vpython as vp, keyboard as kb, time, itertools as iter, math, copy
+import vpython as vp, keyboard as kb, time, itertools as iter, math, copy, random
 
 
 #Graphical renderer of Rubiks cube
@@ -72,13 +72,14 @@ class Cube_Renderer():
                           [[0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]]          # Red
 
 
-        # After a turn is made, the references to the pieces need to be moved to a different set of faces
-        self.__reference_changes__ = [[[[0,0,0], [2,0,0]], [[1,0,0], [2,1,0]], [[2,0,0], [2,2,0]], [[2,1,0], [1,2,0]], [[2,2,0], [0,2,0]], [[1,2,0], [0,1,0]], [[0,2,0], [0,0,0]], [[0,1,0], [1,0,0]]],   # Green
-                                      [[[0,2,2], [2,2,2]], [[1,2,2], [2,1,2]], [[2,2,2], [2,0,2]], [[2,1,2], [1,0,2]], [[2,0,2], [0,0,2]], [[1,0,2], [0,1,2]], [[0,0,2], [0,2,2]], [[0,1,2], [1,2,2]]],   # Blue
-                                      [[[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []]],   # Yellow
-                                      [[[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []]],   # White
-                                      [[[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []]],   # Orange
-                                      [[[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []], [[], []]]]   # Red
+
+        ######################## I THINK TWEAKING THESE WILL FIX IT
+        self.__reference_changes__ = [[0, 1, 2, 5, 8, 7, 6, 3],
+                                      [0, 3, 6, 7, 8, 5, 2, 1],
+                                      [0, 1, 2, 5, 8, 7, 6, 3],
+                                      [0, 3, 6, 7, 8, 5, 2, 1],
+                                      [0, 1, 2, 5, 8, 7, 6, 3],
+                                      [0, 3, 6, 7, 8, 5, 2, 1]]
 
 
     # Renders the cube, checking for user rotation and cube moves every frame
@@ -115,6 +116,22 @@ class Cube_Renderer():
 
         self.selected_turn[1] -= 1
         if self.selected_turn[1] == 0:
+
+            # Pulls reference changes, and reverses the list if the turn was anticlockwise
+            reference_moves = self.__reference_changes__[self.selected_turn[0][0]][::self.selected_turn[0][1]]
+
+            # Pairs of initial and target pieces, so the references for each piece rotate along with the faces
+            pairs = []
+            for i in range(-2, 6):
+                pairs.append([self.__faces__[self.selected_turn[0][0]][reference_moves[i]], self.__faces__[self.selected_turn[0][0]][reference_moves[i + 2]]])
+
+            for face, piece in iter.product(range(6), range(9)):
+                for pair in pairs:
+                    if self.__faces__[face][piece] == pair[0]:
+                        self.__faces__[face][piece] = pair[1]
+                        break
+
+            # As the move is complete, the selected_turn varaible is now empty
             self.selected_turn = [0,0]
 
 
