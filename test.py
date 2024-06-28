@@ -1,13 +1,4 @@
-import visualise, time
+test = [0,1,2,3,4,5]
+test.discard(1)
 
-
-render = visualise.Cube_Renderer()
-
-def test():
-    time.sleep(3)
-render.selected_turn = [[0, 1], 90]
-
-#test_thread = threading.Thread(target=test)
-#test_thread.start()
-render.selected_turn = [[5, 1], 90]
-render.render()
+print(test)
