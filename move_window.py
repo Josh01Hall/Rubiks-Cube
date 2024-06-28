@@ -11,6 +11,9 @@ class Move_GUI():
         # Reference to parent Visualiser object
         self.__visualiser_object__ = visualiser
 
+        # Used to check if the cube is solver after each move
+        self.__solved_config__ = visualiser.faces
+
         # Colours of the centre tile of each face
         self.__colours__ = ["Green", "Blue", "Yellow", "White", "Orange", "Red"]
 
