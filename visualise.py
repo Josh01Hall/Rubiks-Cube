@@ -5,21 +5,12 @@ import vpython as vp, keyboard as kb, time, itertools as iter, math, copy, numpy
 class Cube_Renderer():
 
 
-    # Creates the cube and all the pieces, and all rotational objects and vectors    
+    # Creates all needed co-ordinates and vectors, and calls the __create_cube__ function
     def __init__(self):
 
         # Sets size of background in display window, and hides all objects until cube is fully rendered
         background = vp.canvas(background=vp.vec(1,1,1), width=1000, height=800)
         background.visible = False
-
-        # Colours for the 3 layers of each set of pyramids, 6 surface colours and the interior colour of each piece
-        colour_options = [vp.color.blue, vp.color.green, vp.color.white, vp.color.yellow, vp.color.red, vp.color.orange, vp.color.black]
-        #                 Right          Left            Top             Bottom           Front         Back             Interior
-
-        # Groups the colours for use when creating the pyramids
-        colours = []
-        for i in range(6):
-            colours.append(([colour_options[i]] + [colour_options[6]] * 2)[::int((i % 2 - 0.5) * 2)])
 
         # Axis of each pyramid making up each piece, used when rendering the pyramids
         self.__render_axes__ = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]]
@@ -28,10 +19,77 @@ class Cube_Renderer():
         self.__turn_axes__ = copy.deepcopy([[component * -1 for component in axis] for axis in self.__render_axes__])
 
         # Position of each pyramid, relative to the centre of a piece
-        position_vectors = [[component * (-0.5) for component in axis] for axis in self.__render_axes__]
+        self.__position_vectors__ = [[component * (-0.5) for component in axis] for axis in self.__render_axes__]
 
         # Current turn being made and number of rotations left, if no turn is being made the variable is [0, 0]
         self.selected_turn = [0, 0]        
+
+        # Coordinates of the 9 pieces in each face
+        self.faces = [[[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [0, 1, 1], [0, 1, 2], [0, 2, 0], [0, 2, 1], [0, 2, 2]],          # Green
+                      [[2, 0, 0], [2, 0, 1], [2, 0, 2], [2, 1, 0], [2, 1, 1], [2, 1, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]],          # Blue
+                      [[0, 0, 0], [0, 1, 0], [0, 2, 0], [1, 0, 0], [1, 1, 0], [1, 2, 0], [2, 0, 0], [2, 1, 0], [2, 2, 0]],          # Yellow
+                      [[0, 0, 2], [0, 1, 2], [0, 2, 2], [1, 0, 2], [1, 1, 2], [1, 2, 2], [2, 0, 2], [2, 1, 2], [2, 2, 2]],          # White
+                      [[0, 0, 0], [0, 0, 1], [0, 0, 2], [1, 0, 0], [1, 0, 1], [1, 0, 2], [2, 0, 0], [2, 0, 1], [2, 0, 2]],          # Orange
+                      [[0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]]          # Red
+
+        # When a face is turned, the coordinate references in self.faces need to be updated, this shows the how they change
+        self.__reference_changes__ = []
+        reference_template = [0, 3, 6, 7, 8, 5, 2, 1]
+
+        for i in range(6):
+            self.__reference_changes__.append(reference_template[::int((i % 2 - 0.5) * -2)])
+
+        # For some reason orange and red reverse the flipping pattern, this accounts for it
+        self.__reference_changes__[-2], self.__reference_changes__[-1] = self.__reference_changes__[-1], self.__reference_changes__[-2]
+
+
+        # Used to rotate the turn vectors
+        trig_constants = [[math.cos(vp.radians(0.35)), math.sin(vp.radians(0.35)), 1, 0],
+                          [math.cos(vp.radians(-0.35)), math.sin(vp.radians(-0.35)), 1, 0]]
+        
+        self.__vector_rotators__ = [[[trig_constants[0][2], trig_constants[0][3],     trig_constants[0][3]],
+                                     [trig_constants[0][3], trig_constants[0][0], 0 - trig_constants[0][1]],
+                                     [trig_constants[0][3], trig_constants[0][1],     trig_constants[0][0]]],
+                                
+                                    [[trig_constants[1][2], trig_constants[1][3],     trig_constants[1][3]],
+                                     [trig_constants[1][3], trig_constants[1][0], 0 - trig_constants[1][1]],
+                                     [trig_constants[1][3], trig_constants[1][1],     trig_constants[1][0]]],
+
+                                    [[    trig_constants[0][0], trig_constants[0][3], trig_constants[0][1]],
+                                     [    trig_constants[0][3], trig_constants[0][2], trig_constants[0][3]],
+                                     [0 - trig_constants[0][1], trig_constants[0][3], trig_constants[0][0]]],
+
+                                    [[    trig_constants[1][0], trig_constants[1][3], trig_constants[1][1]],
+                                     [    trig_constants[1][3], trig_constants[1][2], trig_constants[1][3]],
+                                     [0 - trig_constants[1][1], trig_constants[1][3], trig_constants[1][0]]],
+
+                                    [[trig_constants[0][0], 0 - trig_constants[0][1], trig_constants[0][3]],
+                                     [trig_constants[0][1],     trig_constants[0][0], trig_constants[0][3]],
+                                     [trig_constants[0][3],     trig_constants[0][3], trig_constants[0][2]]],
+
+                                    [[trig_constants[1][0], 0 - trig_constants[1][1], trig_constants[1][3]],
+                                     [trig_constants[1][1],     trig_constants[1][0], trig_constants[1][3]],
+                                     [trig_constants[1][3],     trig_constants[1][3], trig_constants[1][2]]]]
+
+
+        # Creates the visual representation of the cube
+        self.__create_cube__()
+
+        # Makes objects visible now cube is fully rendered
+        background.visible = True
+
+
+    # Creates all the cube objects
+    def __create_cube__(self):
+        
+        # Colours for the 3 layers of each set of pyramids, 6 surface colours and the interior colour of each piece
+        colour_options = [vp.color.blue, vp.color.green, vp.color.white, vp.color.yellow, vp.color.red, vp.color.orange, vp.color.black]
+        #                 Right          Left            Top             Bottom           Front         Back             Interior
+
+        # Groups the colours for use when creating the pyramids
+        colours = []
+        for i in range(6):
+            colours.append(([colour_options[i]] + [colour_options[6]] * 2)[::int((i % 2 - 0.5) * 2)])
 
         # Position of each piece, relative to the centre of the cube, centre of the cube is at the origin
         piece_vectors = []
@@ -56,33 +114,11 @@ class Cube_Renderer():
                     for s in range(6):
 
                         # Creates the pyramids that make up the piece
-                        piece.append(vp.pyramid(color=colours[s][[y, x, z][math.floor(s/2)]], pos=vp.vec(*position_vectors[s]) + vp.vec(*piece_vectors[z][x][y]), axis=vp.vec(*self.__render_axes__[s]), size=vp.vec(0.5, 1, 1)))
+                        piece.append(vp.pyramid(color=colours[s][[y, x, z][math.floor(s/2)]], pos=vp.vec(*self.__position_vectors__[s]) + vp.vec(*piece_vectors[z][x][y]), axis=vp.vec(*self.__render_axes__[s]), size=vp.vec(0.5, 1, 1)))
                     # Binds each side of each piece together, so they rotate together during turns
                     x_set.append(vp.compound(piece))
                 z_set.append(x_set)
             self.__pieces__.append(z_set)
-
-        # Coordinates of the 9 pieces in each face
-        self.faces = [[[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [0, 1, 1], [0, 1, 2], [0, 2, 0], [0, 2, 1], [0, 2, 2]],          # Green
-                      [[2, 0, 0], [2, 0, 1], [2, 0, 2], [2, 1, 0], [2, 1, 1], [2, 1, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]],          # Blue
-                      [[0, 0, 0], [0, 1, 0], [0, 2, 0], [1, 0, 0], [1, 1, 0], [1, 2, 0], [2, 0, 0], [2, 1, 0], [2, 2, 0]],          # Yellow
-                      [[0, 0, 2], [0, 1, 2], [0, 2, 2], [1, 0, 2], [1, 1, 2], [1, 2, 2], [2, 0, 2], [2, 1, 2], [2, 2, 2]],          # White
-                      [[0, 0, 0], [0, 0, 1], [0, 0, 2], [1, 0, 0], [1, 0, 1], [1, 0, 2], [2, 0, 0], [2, 0, 1], [2, 0, 2]],          # Orange
-                      [[0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]]          # Red
-
-
-        # When a face is turned, the coordinate references in self.faces need to be updated, this shows the how they change
-        self.__reference_changes__ = []
-        reference_template = [0, 3, 6, 7, 8, 5, 2, 1]
-
-        for i in range(6):
-            self.__reference_changes__.append(reference_template[::int((i % 2 - 0.5) * -2)])
-
-        # For some reason orange and red reverse the flipping pattern, this accounts for it
-        self.__reference_changes__[-2], self.__reference_changes__[-1] = self.__reference_changes__[-1], self.__reference_changes__[-2]
-
-        # Makes objects visible now cube is fully rendered
-        background.visible = True
 
 
     # Renders the cube, checking for user rotation and cube moves every frame
@@ -161,35 +197,9 @@ class Cube_Renderer():
             for y, z, x in iter.product(range(3), range(3), range(3)):
                 self.__pieces__[y][z][x].rotate(angle=vp.radians(-0.35), axis=vp.vec(*self.__render_axes__[key]), origin=vp.vec(0,0,0))
 
-
-            test = [0,2,1] 
-
-            # x, ycos - zsin, ysin + zcos
-            if self.__render_axes__[key][0] == 0:
-                print(0)
-                self.__turn_axes__[0] = [self.__turn_axes__[0][test[0]],
-                                         self.__turn_axes__[0][test[1]] * math.cos(vp.radians(0.35)) - self.__turn_axes__[0][test[2]] * math.sin(vp.radians(0.35)),
-                                         self.__turn_axes__[0][test[1]] * math.sin(vp.radians(0.35)) + self.__turn_axes__[0][test[2]] * math.cos(vp.radians(0.35))]
-                self.__turn_axes__[1] = [self.__turn_axes__[1][test[0]],
-                                         self.__turn_axes__[1][test[1]] * math.cos(vp.radians(0.35)) - self.__turn_axes__[1][test[2]] * math.sin(vp.radians(0.35)),
-                                         self.__turn_axes__[1][test[1]] * math.sin(vp.radians(0.35)) + self.__turn_axes__[1][test[2]] * math.cos(vp.radians(0.35))]
-            # xcos + zsin, y, -xsin + zcos
-            if self.__render_axes__[key][1] == 0:
-                print(1)
-                self.__turn_axes__[2] = [self.__turn_axes__[2][test[0]] * math.cos(vp.radians(0.35)) + self.__turn_axes__[2][test[2]] * math.sin(vp.radians(0.35)),
-                                         self.__turn_axes__[2][test[1]],
-                                    -1 * self.__turn_axes__[2][test[0]] * math.sin(vp.radians(0.35)) + self.__turn_axes__[2][test[2]] * math.cos(vp.radians(0.35))]
-                self.__turn_axes__[3] = [self.__turn_axes__[3][test[0]] * math.cos(vp.radians(0.35)) + self.__turn_axes__[3][test[2]] * math.sin(vp.radians(0.35)),
-                                         self.__turn_axes__[3][test[1]],
-                                    -1 * self.__turn_axes__[3][test[0]] * math.sin(vp.radians(0.35)) + self.__turn_axes__[3][test[2]] * math.cos(vp.radians(0.35))]
-            # xcos - ysin, xsin + ycos, z
-            if self.__render_axes__[key][2] == 0:
-                print(2)
-                self.__turn_axes__[4] = [self.__turn_axes__[4][test[0]] * math.cos(vp.radians(0.35)) - self.__turn_axes__[4][test[1]] * math.sin(vp.radians(0.35)),
-                                         self.__turn_axes__[4][test[0]] * math.sin(vp.radians(0.35)) + self.__turn_axes__[4][test[1]] * math.cos(vp.radians(0.35)),
-                                         self.__turn_axes__[4][test[2]]]
-                self.__turn_axes__[5] = [self.__turn_axes__[5][test[0]] * math.cos(vp.radians(0.35)) - self.__turn_axes__[5][test[1]] * math.sin(vp.radians(0.35)),
-                                         self.__turn_axes__[5][test[0]] * math.sin(vp.radians(0.35)) + self.__turn_axes__[5][test[1]] * math.cos(vp.radians(0.35)),
-                                         self.__turn_axes__[5][test[2]]]
-            #print(self.__render_axes__[key])  
-        print(self.__turn_axes__)
+            # Updates all the turn vectors, based on the rotation made
+            for i in range(6):
+                self.__turn_axes__[i] = np.matmul(self.__vector_rotators__[key], self.__turn_axes__[i])
+                # Normalises the turn vector
+                magnitude = np.sqrt(self.__turn_axes__[i].dot(self.__turn_axes__[i]))
+                self.__turn_axes__[i] = [x / magnitude for x in self.__turn_axes__[i]]
