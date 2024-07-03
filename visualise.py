@@ -32,6 +32,23 @@ class Cube_Renderer():
                       [[0, 0, 0], [0, 0, 1], [0, 0, 2], [1, 0, 0], [1, 0, 1], [1, 0, 2], [2, 0, 0], [2, 0, 1], [2, 0, 2]],          # Orange
                       [[0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]]          # Red
 
+
+        self.face1 = []
+
+        for f in range(6):
+            face = []
+            for y, x in iter.product(range(3), range(3)):
+                empty = [0,0,0]
+                #    2,1,2       1,0,0
+                empty["x"], empty["y"], empty[0 - math.floor(f/2)] = x, y, (f % 2) * 2
+                face.append(empty)
+                
+            self.face1.append(face)
+
+
+        print(self.faces == self.face1)
+
+
         # When a face is turned, the coordinate references in self.faces need to be updated, this shows the how they change
         self.__reference_changes__ = []
         reference_template = [0, 3, 6, 7, 8, 5, 2, 1]
@@ -71,6 +88,15 @@ class Cube_Renderer():
                                      [trig_constants[1][1],     trig_constants[1][0], trig_constants[1][3]],
                                      [trig_constants[1][3],     trig_constants[1][3], trig_constants[1][2]]]]
 
+
+
+        self.__vector_rotators1__ = []
+
+        for i in range(6):
+            for i in range(3):
+                continue
+
+        print(self.__vector_rotators1__ == self.__vector_rotators__)
 
         # Creates the visual representation of the cube
         self.__create_cube__()
@@ -129,23 +155,11 @@ class Cube_Renderer():
             # Check which keys have been pressed, and complete appropriate rotation ()
             keys = []
             if kb.is_pressed("w"): keys.append(1)
-            if kb.is_pressed("s"):
-                if 1 in keys:
-                    keys.remove(1)
-                else:
-                    keys.append(0)
+            if kb.is_pressed("s"): keys.append(0)
             if kb.is_pressed("a"): keys.append(3)
-            if kb.is_pressed("d"):
-                if 3 in keys:
-                    keys.remove(3)
-                else:
-                    keys.append(2)                
+            if kb.is_pressed("d"): keys.append(2)                
             if kb.is_pressed("q"): keys.append(4)
-            if kb.is_pressed("e"):
-                if 3 in keys:
-                    keys.remove(4)
-                else:
-                    keys.append(5) 
+            if kb.is_pressed("e"): keys.append(5)
 
             # If a turn is being made, turn the cube
             if self.selected_turn != [0, 0]:
