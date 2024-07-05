@@ -25,29 +25,15 @@ class Cube_Renderer():
         self.selected_turn = [0, 0]        
 
         # Coordinates of the 9 pieces in each face
-        self.faces = [[[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [0, 1, 1], [0, 1, 2], [0, 2, 0], [0, 2, 1], [0, 2, 2]],          # Green
-                      [[2, 0, 0], [2, 0, 1], [2, 0, 2], [2, 1, 0], [2, 1, 1], [2, 1, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]],          # Blue
-                      [[0, 0, 0], [0, 1, 0], [0, 2, 0], [1, 0, 0], [1, 1, 0], [1, 2, 0], [2, 0, 0], [2, 1, 0], [2, 2, 0]],          # Yellow
-                      [[0, 0, 2], [0, 1, 2], [0, 2, 2], [1, 0, 2], [1, 1, 2], [1, 2, 2], [2, 0, 2], [2, 1, 2], [2, 2, 2]],          # White
-                      [[0, 0, 0], [0, 0, 1], [0, 0, 2], [1, 0, 0], [1, 0, 1], [1, 0, 2], [2, 0, 0], [2, 0, 1], [2, 0, 2]],          # Orange
-                      [[0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]]          # Red
-
-
-        self.face1 = []
+        self.faces = []
 
         for f in range(6):
             face = []
             for y, x in iter.product(range(3), range(3)):
                 empty = [0,0,0]
-                #    2,1,2       1,0,0
-                empty["x"], empty["y"], empty[0 - math.floor(f/2)] = x, y, (f % 2) * 2
+                empty[2 - math.floor(f/2) % 2], empty[math.floor(7 / (6 + f))], empty[0 - math.floor(f/2)] = x, y, (f % 2) * 2
                 face.append(empty)
-                
-            self.face1.append(face)
-
-
-        print(self.faces == self.face1)
-
+            self.faces.append(face)
 
         # When a face is turned, the coordinate references in self.faces need to be updated, this shows the how they change
         self.__reference_changes__ = []
@@ -61,42 +47,20 @@ class Cube_Renderer():
 
 
         # Used to rotate the turn vectors
+        self.__vector_rotators__ = []
+
         trig_constants = [[math.cos(vp.radians(0.35)), math.sin(vp.radians(0.35)), 1, 0],
                           [math.cos(vp.radians(-0.35)), math.sin(vp.radians(-0.35)), 1, 0]]
-        
-        self.__vector_rotators__ = [[[trig_constants[0][2], trig_constants[0][3],     trig_constants[0][3]],
-                                     [trig_constants[0][3], trig_constants[0][0], 0 - trig_constants[0][1]],
-                                     [trig_constants[0][3], trig_constants[0][1],     trig_constants[0][0]]],
-                                
-                                    [[trig_constants[1][2], trig_constants[1][3],     trig_constants[1][3]],
-                                     [trig_constants[1][3], trig_constants[1][0], 0 - trig_constants[1][1]],
-                                     [trig_constants[1][3], trig_constants[1][1],     trig_constants[1][0]]],
 
-                                    [[    trig_constants[0][0], trig_constants[0][3], trig_constants[0][1]],
-                                     [    trig_constants[0][3], trig_constants[0][2], trig_constants[0][3]],
-                                     [0 - trig_constants[0][1], trig_constants[0][3], trig_constants[0][0]]],
+        for f in range(6):
+            temp = [[trig_constants[f % 2][2], trig_constants[f % 2][3],     trig_constants[f % 2][3]],
+                    [trig_constants[f % 2][3], trig_constants[f % 2][0], 0 - trig_constants[f % 2][1]],
+                    [trig_constants[f % 2][3], trig_constants[f % 2][1],     trig_constants[f % 2][0]]]
+            
+            s = 0 - math.floor(f/2)
 
-                                    [[    trig_constants[1][0], trig_constants[1][3], trig_constants[1][1]],
-                                     [    trig_constants[1][3], trig_constants[1][2], trig_constants[1][3]],
-                                     [0 - trig_constants[1][1], trig_constants[1][3], trig_constants[1][0]]],
-
-                                    [[trig_constants[0][0], 0 - trig_constants[0][1], trig_constants[0][3]],
-                                     [trig_constants[0][1],     trig_constants[0][0], trig_constants[0][3]],
-                                     [trig_constants[0][3],     trig_constants[0][3], trig_constants[0][2]]],
-
-                                    [[trig_constants[1][0], 0 - trig_constants[1][1], trig_constants[1][3]],
-                                     [trig_constants[1][1],     trig_constants[1][0], trig_constants[1][3]],
-                                     [trig_constants[1][3],     trig_constants[1][3], trig_constants[1][2]]]]
-
-
-
-        self.__vector_rotators1__ = []
-
-        for i in range(6):
-            for i in range(3):
-                continue
-
-        print(self.__vector_rotators1__ == self.__vector_rotators__)
+            temp = [temp[0][s:] + temp[0][:s], temp[1][s:] + temp[1][:s], temp[2][s:] + temp[2][:s]]
+            self.__vector_rotators__.append(temp[s:] + temp[:s])
 
         # Creates the visual representation of the cube
         self.__create_cube__()
