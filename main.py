@@ -1,4 +1,4 @@
-import visualise, move_window, threading, installs
+import installs, visualise, move_window, threading
 
 
 visualiser = visualise.Cube_Renderer()
