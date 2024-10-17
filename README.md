@@ -1,3 +1,8 @@
+RUNNING INSTRUCTIONS:
+
+- Run virtual_env powershell script, then either run main.py
+
+
 TO DO LIST:
 
 Short Term:

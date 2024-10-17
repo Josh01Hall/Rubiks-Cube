@@ -1,3 +1,4 @@
-python -venv Get-Location
-<Get-Location>/Scripts/activate
-deactivate
+python -m venv .venv
+
+pip install -r requirements.txt
+python main.py
