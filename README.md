@@ -6,6 +6,7 @@ RUNNING INSTRUCTIONS:
 TO DO LIST:
 
 Short Term:
+- Properly setup virtual env
 - Integrate visualiser with backend cube representation
 
 Long Term:
