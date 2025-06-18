@@ -6,9 +6,9 @@ RUNNING INSTRUCTIONS:
 TO DO LIST:
 
 Short Term:
-- Properly setup virtual env
-- Integrate visualiser with backend cube representation
+- Properly setup virtual env.
+- Integrate visualiser with backend cube representation.
 
 Long Term:
-- Create solver
-- Proper move window gui improvements
+- Create solver.
+- Proper move window gui improvements.
